@@ -13,6 +13,16 @@ An end-to-end Machine Learning web application that predicts used car market val
 
 ---
 
+## Web Application Demo
+
+### Home Page
+![Car Price Prediction Home](images/Screenshot%20(924).png)
+
+### Prediction Interface
+![Car Price Prediction Interface](images/Screenshot%20(925).png)
+
+---
+
 ## 📊 Workflow & Methodology
 Data Ingestion (SQL/CSV)
 │
@@ -68,4 +78,3 @@ CAR_SALESPREDICTION/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-"# Car-Sales-Price-Predictio" 
