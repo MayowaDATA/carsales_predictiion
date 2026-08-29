@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Sales Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #070b19 0%, #0d1b2a 50%, #1b263b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #e0e1dd;
+        }
+
+        .card {
+            background: rgba(13, 27, 42, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(58, 134, 255, 0.1);
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: #778da9;
+            font-size: 0.96rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .btn-predict {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #1d4ed8 0%, #3a86ff 100%);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(29, 78, 216, 0.35);
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(58, 134, 255, 0.45);
+            background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="icon">🚗</div>
+        <h1>Car Selling Price Prediction</h1>
+        <p>Get an instant estimate of your car's resale value based on its age, mileage, condition, and specs.</p>
+        <a href="{{ url_for('predict_datapoint') }}" class="btn-predict">Get a Prediction</a>
+    </div>
+
+</body>
+</html>

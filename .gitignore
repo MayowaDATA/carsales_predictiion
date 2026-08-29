@@ -1,0 +1,24 @@
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv/
+*_env/
+
+# Model binaries (Pickle / Joblib)
+*.pkl
+models/*.pkl
+
+# VS Code settings
+.vscode/
+
+# Jupyter checkpoint files
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# OS files
+.DS_Store
+Thumbs.db
