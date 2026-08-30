@@ -26,7 +26,7 @@ def download_if_missing(filename):
     return local_path
 
 # Auto-download from S3 if files are not present locally
-rf_model_path = download_if_missing("random_forest_model.pkl")
+rf_model_path = download_if_missing("random_forest_modeL.pkl")
 preprocessor_path = download_if_missing("preprocessor.pkl")
 
 # Load models
