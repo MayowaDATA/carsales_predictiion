@@ -1,13 +1,9 @@
+Flask
+gunicorn
 numpy
 pandas
-openpyxl
-matplotlib
-seaborn
-sqlalchemy
 scikit-learn
-ipykernel
-imblearn
-plotly
-xgboost
+xgboost-cpu
 boto3
+
 
