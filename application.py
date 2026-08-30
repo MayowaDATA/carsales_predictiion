@@ -15,29 +15,47 @@ S3_REGION = "eu-north-1"
 
 s3 = boto3.client("s3", region_name=S3_REGION)
 
-# Global cache for lazy loading
-model_cache = {"rf_model": None, "preprocessor": None}
+# Cache dictionary to store models in memory after the first load
+model_cache = {
+    "rf_model": None,
+    "preprocessor": None
+}
 
 def load_model_and_preprocessor():
-    if model_cache["rf_model"] is None:
+    """Lazily downloads and caches the model artifacts on the first prediction call."""
+    if model_cache["rf_model"] is None or model_cache["preprocessor"] is None:
         os.makedirs("artifacts", exist_ok=True)
         
         rf_path = os.path.join("artifacts", "random_forest_model.pkl")
         prep_path = os.path.join("artifacts", "preprocessor.pkl")
         
+        # Download random_forest_model.pkl if missing
         if not os.path.exists(rf_path) or os.path.getsize(rf_path) == 0:
-            print("Downloading random_forest_model.pkl from S3...")
-            s3.download_file(S3_BUCKET, "random_forest_model.pkl", rf_path)
-            
+            print(f"Downloading random_forest_model.pkl from S3 bucket {S3_BUCKET}...")
+            try:
+                s3.download_file(S3_BUCKET, "random_forest_model.pkl", rf_path)
+                print("Downloaded random_forest_model.pkl successfully.")
+            except ClientError as e:
+                print(f"Error downloading random_forest_model.pkl: {e}")
+                raise e
+                
+        # Download preprocessor.pkl if missing
         if not os.path.exists(prep_path) or os.path.getsize(prep_path) == 0:
-            print("Downloading preprocessor.pkl from S3...")
-            s3.download_file(S3_BUCKET, "preprocessor.pkl", prep_path)
-            
+            print(f"Downloading preprocessor.pkl from S3 bucket {S3_BUCKET}...")
+            try:
+                s3.download_file(S3_BUCKET, "preprocessor.pkl", prep_path)
+                print("Downloaded preprocessor.pkl successfully.")
+            except ClientError as e:
+                print(f"Error downloading preprocessor.pkl: {e}")
+                raise e
+                
+        # Load the artifacts into memory
         print("Loading models into memory...")
         with open(rf_path, "rb") as f:
             model_cache["rf_model"] = pickle.load(f)
         with open(prep_path, "rb") as f:
             model_cache["preprocessor"] = pickle.load(f)
+        print("Models loaded into memory successfully.")
             
     return model_cache["rf_model"], model_cache["preprocessor"]
 
@@ -50,10 +68,10 @@ def index():
 @app.route("/predictdata", methods=["GET", "POST"])
 def predict_datapoint():
     if request.method == "POST":
-        # Load models lazily on first prediction request
+        # Load artifacts on demand
         rf_model, preprocessor = load_model_and_preprocessor()
 
-        # Get data from form
+        # Collect form inputs
         model = request.form.get("model")
         vehicle_age = float(request.form.get("vehicle_age"))
         km_driven = float(request.form.get("km_driven"))
@@ -65,7 +83,7 @@ def predict_datapoint():
         max_power = float(request.form.get("max_power"))
         seats = float(request.form.get("seats"))
 
-        # Create dataframe
+        # Construct dataframe matching model features
         new_data = pd.DataFrame({
             "model": [model],
             "vehicle_age": [vehicle_age],
@@ -79,10 +97,8 @@ def predict_datapoint():
             "seats": [seats]
         })
 
-        # Preprocess the data
+        # Preprocess and generate prediction
         new_data_processed = preprocessor.transform(new_data)
-
-        # Predict
         prediction = rf_model.predict(new_data_processed)
 
         return render_template(
