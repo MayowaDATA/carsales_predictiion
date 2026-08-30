@@ -9,4 +9,5 @@ ipykernel
 imblearn
 plotly
 xgboost
+boto3
 
