@@ -15,30 +15,31 @@ S3_REGION = "eu-north-1"
 
 s3 = boto3.client("s3", region_name=S3_REGION)
 
-def download_if_missing(filename):
-    os.makedirs("artifacts", exist_ok=True)
-    local_path = os.path.join("artifacts", filename)
-    
-    if not os.path.exists(local_path) or os.path.getsize(local_path) == 0:
-        print(f"Downloading {filename} from S3 bucket {S3_BUCKET} in {S3_REGION}...")
-        try:
-            s3.download_file(S3_BUCKET, filename, local_path)
-            print(f"Successfully downloaded {filename}")
-        except ClientError as e:
-            print(f"Failed to download {filename} from S3: {e}")
-            raise e
-    return local_path
+# Global cache for lazy loading
+model_cache = {"rf_model": None, "preprocessor": None}
 
-# 1. Download paths
-rf_model_path = download_if_missing("random_forest_model.pkl")
-preprocessor_path = download_if_missing("preprocessor.pkl")
-
-# 2. Load model and preprocessor into memory
-with open(rf_model_path, "rb") as f:
-    rf_model = pickle.load(f)
-
-with open(preprocessor_path, "rb") as f:
-    preprocessor = pickle.load(f)
+def load_model_and_preprocessor():
+    if model_cache["rf_model"] is None:
+        os.makedirs("artifacts", exist_ok=True)
+        
+        rf_path = os.path.join("artifacts", "random_forest_model.pkl")
+        prep_path = os.path.join("artifacts", "preprocessor.pkl")
+        
+        if not os.path.exists(rf_path) or os.path.getsize(rf_path) == 0:
+            print("Downloading random_forest_model.pkl from S3...")
+            s3.download_file(S3_BUCKET, "random_forest_model.pkl", rf_path)
+            
+        if not os.path.exists(prep_path) or os.path.getsize(prep_path) == 0:
+            print("Downloading preprocessor.pkl from S3...")
+            s3.download_file(S3_BUCKET, "preprocessor.pkl", prep_path)
+            
+        print("Loading models into memory...")
+        with open(rf_path, "rb") as f:
+            model_cache["rf_model"] = pickle.load(f)
+        with open(prep_path, "rb") as f:
+            model_cache["preprocessor"] = pickle.load(f)
+            
+    return model_cache["rf_model"], model_cache["preprocessor"]
 
 
 @app.route("/")
@@ -49,6 +50,9 @@ def index():
 @app.route("/predictdata", methods=["GET", "POST"])
 def predict_datapoint():
     if request.method == "POST":
+        # Load models lazily on first prediction request
+        rf_model, preprocessor = load_model_and_preprocessor()
+
         # Get data from form
         model = request.form.get("model")
         vehicle_age = float(request.form.get("vehicle_age"))
