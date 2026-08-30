@@ -1,25 +1,47 @@
+import os
+import boto3
 import pickle
 import numpy as np
+import pandas as pd
 from flask import Flask, request, render_template
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
 
 application = Flask(__name__)
 app = application
 
-rf_model = pickle.load(open("models/random_forest_model.pkl", "rb"))
-preprocessor = pickle.load(open("models/preprocessor.pkl", "rb"))
+# Ensure models directory exists
+os.makedirs("models", exist_ok=True)
+
+# S3 Configuration
+S3_BUCKET = "carsalesprojectmodels"  # verify this matches your S3 bucket name exactly
+S3_REGION = "eu-north-1"
+
+s3 = boto3.client("s3", region_name=S3_REGION)
+
+def download_if_missing(filename):
+    local_path = os.path.join("models", filename)
+    if not os.path.exists(local_path):
+        print(f"Downloading {filename} from S3...")
+        s3.download_file(S3_BUCKET, filename, local_path)
+    return local_path
+
+# Auto-download from S3 if files are not present locally
+rf_model_path = download_if_missing("random_forest_model.pkl")
+preprocessor_path = download_if_missing("preprocessor.pkl")
+
+# Load models
+rf_model = pickle.load(open(rf_model_path, "rb"))
+preprocessor = pickle.load(open(preprocessor_path, "rb"))
+
 
 @app.route("/")
 def index():
-
     return render_template("index.html")
+
 
 @app.route("/predictdata", methods=["GET", "POST"])
 def predict_datapoint():
-
     if request.method == "POST":
-
         # Get data from form
         model = request.form.get("model")
         vehicle_age = float(request.form.get("vehicle_age"))
@@ -46,7 +68,7 @@ def predict_datapoint():
             "seats": [seats]
         })
 
-# Preprocess the data
+        # Preprocess the data
         new_data_processed = preprocessor.transform(new_data)
 
         # Predict
@@ -61,5 +83,4 @@ def predict_datapoint():
 
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5001)
